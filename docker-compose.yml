@@ -1,11 +1,9 @@
 version: '3'
 services:
   registry-service:
-    image: microservice-docker-registry-service:0.0.0-SNAPSHOT
+    image: microservice-docker-registry-service:0.0.1-SNAPSHOT
     ports:
       - 8761:8761
-    networks:
-      - tarazona
   config-service:
     image: microservice-docker-config-service:0.0.1-SNAPSHOT
     links:
@@ -17,18 +15,28 @@ services:
       - registry-service
     ports:
       - 8888:8888
-    networks:
-      - tarazona
   technical-service:
     image: microservice-docker-technical-service:0.0.1-SNAPSHOT
     environment:
       - JAVA_OPTS=
         -DEUREKA_SERVER=http://registry-service:8761/eureka
+    restart: on-failure
     depends_on:
       - registry-service
       - config-service
-    networks:
-      - tarazona
-networks:
-   tarazona:
+    ports:
+      - 8081:8081
+  gateway-service:
+    image: microservice-docker-gateway-service:0.0.1-SNAPSHOT
+    environment:
+      - JAVA_OPTS=
+        -DEUREKA_SERVER=http://registry-service:8761/eureka
+    ports:
+      - 8080:8080
+    depends_on:
+      - config-service
+      - registry-service
+      - technical-service
+
+
 
